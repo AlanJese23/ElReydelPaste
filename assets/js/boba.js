@@ -9,6 +9,12 @@ document.body.appendChild(toast);
 
 let toastTimer;
 
+function trackEvent(name, params = {}) {
+	if (typeof window.gtag === "function") {
+		window.gtag("event", name, params);
+	}
+}
+
 function showToast(message) {
 	toast.textContent = message;
 	toast.classList.add("visible");
@@ -19,6 +25,7 @@ function showToast(message) {
 filterButtons.forEach((button) => {
 	button.addEventListener("click", () => {
 		const filter = button.dataset.filter;
+		trackEvent("menu_filter", { filter });
 
 		filterButtons.forEach((item) => {
 			item.classList.remove("active");
@@ -43,6 +50,11 @@ drinkCards.forEach((card) => {
 		const name = card.dataset.name;
 		const price = card.dataset.price;
 		const text = encodeURIComponent(`Hola El Rey del Paste, quiero una boba de ${name} (${price}) con tapioca.`);
+		trackEvent("drink_whatsapp_click", {
+			drink_name: name,
+			drink_type: card.dataset.type,
+			price
+		});
 		showToast(`${name} listo para pedir por WhatsApp`);
 		window.open(`https://wa.me/527714658861?text=${text}`, "_blank", "noopener");
 	};
@@ -53,5 +65,20 @@ drinkCards.forEach((card) => {
 			event.preventDefault();
 			openOrder();
 		}
+	});
+});
+
+document.querySelectorAll('a[href*="wa.me"]').forEach((link) => {
+	link.addEventListener("click", () => {
+		trackEvent("whatsapp_click", { link_text: link.textContent.trim() });
+	});
+});
+
+document.querySelectorAll(".order-card, .location-actions a").forEach((link) => {
+	link.addEventListener("click", () => {
+		trackEvent("outbound_order_click", {
+			link_text: link.textContent.trim(),
+			destination: link.href
+		});
 	});
 });
